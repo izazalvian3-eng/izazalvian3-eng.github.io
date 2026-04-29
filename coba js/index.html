@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 100px;
+            background-color: rgb(135, 106, 74);
+        }
+        .box {
+            border: 1px solid black;
+            width: 250px;
+            margin: auto;
+            padding: 20px;
+        }
+        input {
+            width: 90%;
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            padding: 8px 20px;
+        }
+    </style>
+</head>
+<>
+
+<div class="box">
+    <h2>Login</h2>
+    
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br><br>
+    
+    <button onclick="login()">LOGIN</button>
+</div>
+
+<script>
+function login() {
+    let user = document.getElementById("username").value;
+    let pass = document.getElementById("password").value;
+
+    // username & password yang benar
+    let usernameBenar = "iyas";
+    let passwordBenar = "20366";
+
+    if (user === usernameBenar && pass === passwordBenar) {
+        alert("Login Berhasil");
+    } else {
+        alert("Login Gagal");
+    }
+}
+</script>
+
+</body>
+</html>
