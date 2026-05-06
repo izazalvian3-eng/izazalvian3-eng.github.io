@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚩 Asia Flag Quiz — Skor Dinamis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Exo+2:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1113; --panel: #1a1d23; --border: rgba(0,220,255,0.2);
+            --cyan: #00dcff; --yellow: #ffe94d; --green: #39ff99; --red: #ff4560;
+            --text: #d0eeff; --subtext: #708ea0;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Exo 2', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            padding: 20px; overflow-x: hidden;
+        }
+
+        header { text-align: center; margin-bottom: 20px; z-index: 10; }
+        header h1 { font-family: 'Orbitron'; font-size: 1.4rem; color: var(--cyan); text-shadow: 0 0 10px rgba(0,220,255,0.3); }
+
+        .layout {
+            display: grid; grid-template-columns: 1fr min(500px, 100%) 1fr;
+            gap: 15px; width: 100%; max-width: 1100px; z-index: 10;
+        }
+
+        .panel {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 15px; padding: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .side-title {
+            font-family: 'Orbitron'; font-size: 0.6rem; letter-spacing: 1.5px;
+            color: var(--subtext); text-transform: uppercase; border-bottom: 1px solid var(--border);
+            padding-bottom: 5px; margin-bottom: 10px;
+        }
+
+        .flag-box { text-align: center; margin-bottom: 15px; }
+        .hint-flag-img {
+            width: 160px; height: auto; border-radius: 5px;
+            border: 1px solid var(--border); margin-bottom: 10px;
+        }
+
+        .kata-display { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 15px 0; }
+        .huruf-slot {
+            width: 32px; height: 42px; background: rgba(255,255,255,0.05);
+            border: 2px solid var(--border); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Orbitron'; font-size: 1.1rem; color: var(--yellow);
+        }
+        .huruf-slot.reveal { border-color: var(--green); color: var(--green); animation: pop 0.3s; }
+        .huruf-slot.space { border: none; background: none; width: 15px; }
+
+        @keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
+
+        .input-area { display: flex; gap: 8px; margin-bottom: 15px; }
+        .huruf-input {
+            flex: 1; background: #000; border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px; color: #fff; font-family: 'Orbitron';
+            text-align: center; font-size: 1.1rem; outline: none;
+        }
+        
+        .btn {
+            background: var(--cyan); color: #000; border: none; padding: 10px 20px;
+            border-radius: 8px; font-family: 'Orbitron'; font-weight: 900; cursor: pointer;
+        }
+
+        .keyboard { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+        .key {
+            width: 30px; height: 30px; background: rgba(255,255,255,0.07);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 4px; font-size: 0.75rem; cursor: pointer; user-select: none;
+        }
+        .key.used-correct { background: var(--green); color: #000; }
+        .key.used-wrong { background: var(--red); color: #fff; opacity: 0.2; pointer-events: none; }
+
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: var(--panel); border: 2px solid var(--cyan);
+            padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 350px;
+        }
+
+        .skor-val { font-family: 'Orbitron'; font-size: 2rem; color: var(--yellow); }
+        .score-change { font-size: 0.9rem; font-weight: bold; margin-left: 10px; }
+
+        @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>TEBAK BENDERA 🚩 ASIA</h1>
+    <p style="font-size: 0.8rem; color: var(--subtext)">Aturan: Salah -20 | Benar +100</p>
+</header>
+
+<div class="layout">
+    <div class="side">
+        <div class="panel">
+            <div class="side-title">TOTAL SKOR</div>
+            <div class="skor-val" id="skorVal">0</div>
+        </div>
+        <div class="panel">
+            <div class="side-title">SISA NYAWA</div>
+            <div id="heartsDisplay" style="color: var(--red); font-size: 1.2rem;"></div>
+        </div>
+    </div>
+
+    <div class="center">
+        <div class="panel">
+            <div class="flag-box">
+                <img id="hintFlagImg" src="" alt="Bendera" class="hint-flag-img">
+                <div style="font-size: 0.85rem;">Hint: <span id="hintText" style="color: var(--yellow);">---</span></div>
+            </div>
+            
+            <div class="kata-display" id="kataDisplay"></div>
+
+            <div class="input-area">
+                <input type="text" id="hurufInput" class="huruf-input" maxlength="1" placeholder="?" autocomplete="off">
+                <button class="btn" onclick="tebakHuruf()">TEBAK</button>
+            </div>
+
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+    </div>
+
+    <div class="side">
+        <div class="panel">
+            <div class="side-title">PROGRES</div>
+            <div id="progressText" style="font-family: 'Orbitron'; color: var(--cyan);">1 / 10</div>
+        </div>
+        <div class="panel">
+            <div class="side-title">RIWAYAT HURUF</div>
+            <div id="historyList" style="font-size: 0.9rem; letter-spacing: 2px; min-height: 20px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalOverlay">
+    <div class="modal-content">
+        <h1 id="modalEmoji" style="font-size: 3rem;">🎉</h1>
+        <h2 id="modalTitle" style="font-family: 'Orbitron'; margin: 10px 0;">BENAR!</h2>
+        <p id="modalBody" style="font-size: 0.9rem; margin-bottom: 20px; color: var(--subtext);">...</p>
+        <button class="btn" style="width: 100%" onclick="tutupModal()">LANJUT</button>
+    </div>
+</div>
+
+<script>
+    const databaseMaster = [
+        { nama: "INDONESIA", code: "id", hint: "Negara Kepulauan" },
+        { nama: "JEPANG", code: "jp", hint: "Matahari Terbit" },
+        { nama: "THAILAND", code: "th", hint: "Gajah Putih" },
+        { nama: "SINGAPURA", code: "sg", hint: "Patung Merlion" },
+        { nama: "KOREA SELATAN", code: "kr", hint: "K-Pop & Gingseng" },
+        { nama: "MALAYSIA", code: "my", hint: "Menara Petronas" },
+        { nama: "TIONGKOK", code: "cn", hint: "Tembok Raksasa" },
+        { nama: "INDIA", code: "in", hint: "Taj Mahal" },
+        { nama: "ARAB SAUDI", code: "sa", hint: "Kota Mekkah" },
+        { nama: "FILIPINA", code: "ph", hint: "Negara Katolik terbesar di Asia" },
+        { nama: "VIETNAM", code: "vn", hint: "Sungai Mekong" },
+        { nama: "PALESTINA", code: "ps", hint: "Tanah Para Nabi" },
+        { nama: "UNI EMIRAT ARAB", code: "ae", hint: "Burj Khalifa" },
+        { nama: "TURKI", code: "tr", hint: "Kebab & Cappadocia" },
+        { nama: "QATAR", code: "qa", hint: "Piala Dunia 2022" },
+        { nama: "PAKISTAN", code: "pk", hint: "Ibukota Islamabad" },
+        { nama: "NEPAL", code: "np", hint: "Gunung Everest" },
+        { nama: "TIMOR LESTE", code: "tl", hint: "Negara Termuda ASEAN" },
+        { nama: "MONGOLIA", code: "mn", hint: "Negeri asal Jengis Khan" },
+        { nama: "SRI LANKA", code: "lk", hint: "Pulau di selatan India" }
+    ];
+
+    // Ambil 10 ronde acak
+    let database = databaseMaster.sort(() => Math.random() - 0.5).slice(0, 10);
+
+    let currentIdx = 0;
+    let kataSekarang = "";
+    let arrayJawaban = [];
+    let hurufDitebak = [];
+    let nyawa = 5;
+    let skor = 0;
+
+    function initGame() {
+        if (currentIdx >= 10) {
+            tampilModal("🏆", "SKOR AKHIR", `Permainan Selesai!<br>Poin Anda: ${skor}`, () => location.reload());
+            return;
+        }
+
+        let data = database[currentIdx];
+        kataSekarang = data.nama.toUpperCase();
+        arrayJawaban = kataSekarang.split("").map(char => char === " " ? " " : null);
+        hurufDitebak = [];
+        nyawa = 5;
+
+        document.getElementById('hintFlagImg').src = `https://flagcdn.com/w320/${data.code}.png`;
+        document.getElementById('hintText').textContent = data.hint;
+        document.getElementById('progressText').textContent = `${currentIdx + 1} / 10`;
+        
+        renderKata();
+        renderStats();
+        renderKeyboard();
+    }
+
+    function renderKata() {
+        const display = document.getElementById('kataDisplay');
+        display.innerHTML = "";
+        arrayJawaban.forEach(h => {
+            const slot = document.createElement('div');
+            slot.className = h === " " ? "huruf-slot space" : ("huruf-slot" + (h ? " reveal" : ""));
+            slot.textContent = h || "";
+            display.appendChild(slot);
+        });
+    }
+
+    function renderStats() {
+        document.getElementById('skorVal').textContent = skor;
+        document.getElementById('heartsDisplay').innerHTML = "❤".repeat(nyawa);
+        document.getElementById('historyList').textContent = hurufDitebak.join(" ");
+    }
+
+    function renderKeyboard() {
+        const kb = document.getElementById('keyboard');
+        kb.innerHTML = "";
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(h => {
+            const key = document.createElement('div');
+            key.className = "key";
+            if(hurufDitebak.includes(h)) {
+                key.classList.add(kataSekarang.includes(h) ? "used-correct" : "used-wrong");
+            }
+            key.textContent = h;
+            key.onclick = () => { document.getElementById('hurufInput').value = h; tebakHuruf(); };
+            kb.appendChild(key);
+        });
+    }
+
+    function tebakHuruf() {
+        const input = document.getElementById('hurufInput');
+        const h = input.value.toUpperCase().trim();
+        input.value = "";
+        
+        if (!h || hurufDitebak.includes(h) || !/^[A-Z]$/.test(h)) return;
+
+        hurufDitebak.push(h);
+
+        if (kataSekarang.includes(h)) {
+            // Huruf BENAR
+            kataSekarang.split("").forEach((char, i) => { if (char === h) arrayJawaban[i] = h; });
+        } else {
+            // Huruf SALAH
+            nyawa--;
+            skor -= 20; // PENGURANGAN 20 POIN
+            if (skor < 0) skor = 0; // Agar skor tidak minus
+        }
+
+        renderKata();
+        renderStats();
+        renderKeyboard();
+        cekHasil();
+    }
+
+    function cekHasil() {
+        if (!arrayJawaban.includes(null)) {
+            // MENANG RONDE
+            skor += 100; // PENAMBAHAN 100 POIN
+            tampilModal("🎉", "BENAR!", `Kamu dapat +100 poin!<br>Skor sekarang: ${skor}`);
+        } else if (nyawa <= 0) {
+            // KALAH RONDE
+            tampilModal("💀", "GAGAL", `Kesempatan habis!<br>Jawaban: ${kataSekarang}`);
+        }
+    }
+
+    function tampilModal(emoji, title, body, action) {
+        document.getElementById('modalEmoji').textContent = emoji;
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalBody').innerHTML = body;
+        document.getElementById('modalOverlay').style.display = "flex";
+        if(action) window.modalAction = action;
+    }
+
+    function tutupModal() {
+        document.getElementById('modalOverlay').style.display = "none";
+        if(window.modalAction) {
+            window.modalAction();
+            window.modalAction = null;
+        } else {
+            currentIdx++;
+            initGame();
+        }
+    }
+
+    document.getElementById('hurufInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') tebakHuruf(); });
+
+    initGame();
+</script>
+</body>
+</html>
